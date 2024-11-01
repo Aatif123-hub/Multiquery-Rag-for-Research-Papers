@@ -1,0 +1,4 @@
+langchain
+PyPDF2
+docx2txt
+langchain-community
