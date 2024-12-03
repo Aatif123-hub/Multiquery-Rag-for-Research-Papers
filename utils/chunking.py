@@ -3,12 +3,12 @@ from langchain.text_splitter import CharacterTextSplitter
 
 class Chunking:
 
-    def get_chunks(text):
+    def get_chunks(text,chunk_size,chunk_overlap):
         try:
             text_splitter = CharacterTextSplitter(
                 separator="\n", 
-                chunk_size=500,
-                chunk_overlap=100,
+                chunk_size=chunk_size,
+                chunk_overlap=chunk_overlap,
                 length_function=len
             )
             chunks = text_splitter.split_text(text)
