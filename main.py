@@ -10,7 +10,7 @@ from langchain.chains import ConversationalRetrievalChain
 from langchain.retrievers.multi_query import MultiQueryRetriever
 from rag.llm_models import LLM
 
-def rag_pipeline(selected_file, embedding_model, vector_store, llm_model, main_question):
+def rag_pipeline(selected_file, embedding_model, vector_store, llm_model):
 
     if selected_file.endswith('.pdf'):
         file_text = parsers.pdf_parser([selected_file])
@@ -46,7 +46,7 @@ def rag_pipeline(selected_file, embedding_model, vector_store, llm_model, main_q
         combine_docs_chain_kwargs={"prompt": prompt},
     )
 
-    response = conversation_chain({"question": main_question})
+    response = conversation_chain({"question": "Provide a response based on the prompt."})
     return response['answer']
 
 if __name__ == "__main__":
@@ -57,12 +57,13 @@ if __name__ == "__main__":
     os.makedirs(output_folder, exist_ok=True)
     available_files = [f for f in os.listdir(input_folder) if f.endswith(('.pdf', '.docx'))]
 
-    uploaded_file = st.file_uploader("Upload a PDF or DOCX file:", type=["pdf", "docx"],accept_multiple_files=True)
+    uploaded_files = st.file_uploader("Upload a PDF or DOCX file:", type=["pdf", "docx"],accept_multiple_files=True)
 
-    if uploaded_file is not None:
-        with open(os.path.join(input_folder, uploaded_file.name), "wb") as f:
+    if uploaded_files is not None:
+        for uploaded_file in uploaded_files:
+          with open(os.path.join(input_folder, uploaded_file.name), "wb") as f:
             f.write(uploaded_file.getbuffer())
-        available_files.append(uploaded_file.name)
+          available_files.append(uploaded_file.name)
 
     if not available_files:
         st.write("No PDF or DOCX files found in the folder.")
@@ -74,16 +75,15 @@ if __name__ == "__main__":
         embedding_model = st.selectbox("Select an embedding model:", available_embeddings)
 
         available_vectorstores = VectorStore.get_available_vectorstores()
-        vector_store = st.selectbox("Select a vector storage type:", available_vectorstores)
+        vector_store = st.selectbox("Select a vectorstore:", available_vectorstores)
 
         available_llms = LLM.get_available_llm()
         llm_model = st.selectbox("Select an LLM model:", available_llms)
 
-        main_question = st.text_input("What do you need to know about this research paper:")
 
-        if st.button("Run Pipeline"):
+        if st.button("Submit"):
             try:
-                combined_response = rag_pipeline(selected_file_path, embedding_model, vector_store, llm_model, main_question)
+                combined_response = rag_pipeline(selected_file_path, embedding_model, vector_store, llm_model)
                 
                 output_file_path = os.path.join(output_folder, "output_summary.md")
                 with open(output_file_path, "w") as output_file:
