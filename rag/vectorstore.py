@@ -1,15 +1,17 @@
 import os
-from langchain_community.vectorstores import FAISS
-from langchain_community.vectorstores import Qdrant
-from langchain_community.vectorstores import Chroma
+from dotenv import load_dotenv
+from langchain_community.vectorstores import FAISS, Qdrant, Chroma
 
+load_dotenv()
 
+class VectorStore:
 
-class Vectorstore:
-   def get_available_vectorstores():
-      return ['faiss', 'qdrant', 'chroma']
+    @staticmethod
+    def get_available_vectorstores():
+        return ['faiss', 'qdrant', 'chroma']
 
-   def vectorization(store_select, text_chunks, embeddings):
+    @staticmethod
+    def vectorization(store_select, text_chunks, embeddings):
         if store_select.lower() == 'faiss':
             try:
                 vectorstore = FAISS.from_texts(
