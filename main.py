@@ -10,7 +10,7 @@ from langchain.chains import ConversationalRetrievalChain
 from langchain.retrievers.multi_query import MultiQueryRetriever
 from rag.llm_models import LLM
 
-def rag_pipeline(selected_file, embedding_model, vector_store, llm_model):
+def rag_pipeline(selected_file, embedding_model, vector_store, llm_model, chunk_size, chunk_overlap):
 
     if selected_file.endswith('.pdf'):
         file_text = parsers.pdf_parser([selected_file])
@@ -22,7 +22,8 @@ def rag_pipeline(selected_file, embedding_model, vector_store, llm_model):
     if not file_text.strip():
         raise ValueError("No text extracted from the selected file.")
 
-    text_chunks = Chunking.get_chunks(file_text)
+
+    text_chunks = Chunking.get_chunks(file_text,chunk_size,chunk_overlap)
     embeddings = Embeddings.get_embeddings(embedding_model)
     vectorstore = VectorStore.vectorization(vector_store, text_chunks, embeddings)
 
@@ -80,10 +81,12 @@ if __name__ == "__main__":
         available_llms = LLM.get_available_llm()
         llm_model = st.selectbox("Select an LLM model:", available_llms)
 
+        chunk_size = st.number_input('Select the chunk size',min_value=50,max_value=2000,value=500,step=10)
+        chunk_overlap = st.number_input('Select the chunk overlap',min_value=50,max_value=1800,value=100,step=10)
 
         if st.button("Submit"):
             try:
-                combined_response = rag_pipeline(selected_file_path, embedding_model, vector_store, llm_model)
+                combined_response = rag_pipeline(selected_file_path, embedding_model, vector_store, llm_model,chunk_size,chunk_overlap)
                 
                 output_file_path = os.path.join(output_folder, "output_summary.md")
                 with open(output_file_path, "w") as output_file:
